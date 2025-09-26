@@ -10,43 +10,66 @@ export const revalidate = 3600; // Revalidate every hour
 
 // Add this function to generate all possible routes at build time
 export async function generateStaticParams() {
-  const notion = new Client({ auth: process.env.NOTION_API_KEY });
-  const databaseId = process.env.NOTION_DATABASE_ID!;
+  // Check if environment variables are available
+  if (!process.env.NOTION_API_KEY || !process.env.NOTION_DATABASE_ID) {
+    console.log('Notion environment variables not available during build, skipping static generation');
+    return [];
+  }
   
-  const response = await notion.databases.query({
-    database_id: databaseId,
-  });
-  
-  // Only generate static pages for published posts
-  const publishedPosts = response.results.filter((post: any) => {
-    const status = post.properties?.Status?.status?.name || '';
-    return status.toLowerCase() === 'published';
-  });
-  
-  return publishedPosts.map((post: any) => ({
-    slug: post.properties?.Slug?.rich_text?.[0]?.plain_text || post.id,
-  }));
+  try {
+    const notion = new Client({ auth: process.env.NOTION_API_KEY });
+    const databaseId = process.env.NOTION_DATABASE_ID!;
+    
+    const response = await notion.databases.query({
+      database_id: databaseId,
+    });
+    
+    // Only generate static pages for published posts
+    const publishedPosts = response.results.filter((post: any) => {
+      const status = post.properties?.Status?.status?.name || '';
+      return status.toLowerCase() === 'published';
+    });
+    
+    return publishedPosts.map((post: any) => ({
+      slug: post.properties?.Slug?.rich_text?.[0]?.plain_text || post.id,
+    }));
+  } catch (error) {
+    console.error('Error generating static params:', error);
+    // Return empty array to prevent build failure
+    return [];
+  }
 }
 
 async function getBlogPost(slug: string) {
-  const notion = new Client({ auth: process.env.NOTION_API_KEY });
-  const databaseId = process.env.NOTION_DATABASE_ID!;
-  //console.log('Searching for slug:', slug);
+  // Check if environment variables are available
+  if (!process.env.NOTION_API_KEY || !process.env.NOTION_DATABASE_ID) {
+    console.log('Notion environment variables not available');
+    return null;
+  }
   
-  const response = await notion.databases.query({
-    database_id: databaseId,
-    filter: {
-      property: 'Slug',
-      rich_text: {
-        equals: slug
+  try {
+    const notion = new Client({ auth: process.env.NOTION_API_KEY });
+    const databaseId = process.env.NOTION_DATABASE_ID!;
+    //console.log('Searching for slug:', slug);
+    
+    const response = await notion.databases.query({
+      database_id: databaseId,
+      filter: {
+        property: 'Slug',
+        rich_text: {
+          equals: slug
+        }
       }
-    }
-  });
-  
-  //console.log('Found posts:', response.results.length);
-  //console.log('First result:', response.results[0]);
-  
-  return response.results[0] || null;
+    });
+    
+    //console.log('Found posts:', response.results.length);
+    //console.log('First result:', response.results[0]);
+    
+    return response.results[0] || null;
+  } catch (error) {
+    console.error('Error fetching blog post:', error);
+    return null;
+  }
 }
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
