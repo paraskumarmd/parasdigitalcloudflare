@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "deploy:cloudflare": "npm run build && npx wrangler deploy"
+    "deploy:cloudflare": "npm run build && npx wrangler pages deploy .next --project-name parasdigicloudflare"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

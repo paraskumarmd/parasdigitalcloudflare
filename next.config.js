@@ -3,7 +3,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Cloudflare Workers optimization - hybrid rendering
+  // Cloudflare Pages with Functions - hybrid rendering
   output: 'standalone',
   images: { 
     domains: [
@@ -23,8 +23,8 @@ const nextConfig = {
     ],
   },
   
-  // Enable hybrid rendering for best performance + API routes
-  // Pages are statically generated when possible, dynamic when needed
+  // Enable hybrid rendering for Cloudflare Pages with Functions
+  // Pages are statically generated when possible, API routes handled by Cloudflare Functions
   
   // Performance optimizations for hybrid rendering
   experimental: {

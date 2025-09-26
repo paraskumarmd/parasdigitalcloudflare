@@ -1,14 +1,16 @@
-# Cloudflare Worker configuration for Paras Digital Portfolio
+# Cloudflare Pages configuration for Paras Digital Portfolio
 name = "parasdigicloudflare"
 compatibility_date = "2024-01-15"
-main = "worker.js"
 
-# Build configuration
+# Pages configuration
+pages_build_output_dir = ".next"
+
+# Build configuration for Pages
 [build]
 command = "npm run build"
 cwd = "."
 
-# Environment variables for the worker
+# Environment variables for Pages
 [vars]
 NEXT_PUBLIC_SUPABASE_URL = "https://qkokgwunjnlhssuntiob.supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrb2tnd3Vuam5saHNzdW50aW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUxOTY5NDYsImV4cCI6MjA3MDc3Mjk0Nn0.RDJzFkY7v_X9EEt2LsyH1dKz-UhSPp9-FuDUMk1xnuo"
@@ -24,9 +26,9 @@ CONTACT_TABLE_NAME = "contact_submissions"
 # EMAIL_PASS
 # EMAIL_TO
 
-# Worker configuration
+# Pages configuration
 [env.production]
-name = "paras-digital-portfolio"
+name = "parasdigicloudflare"
 
 [env.staging]
-name = "paras-digital-portfolio-staging"
+name = "parasdigicloudflare-staging"
