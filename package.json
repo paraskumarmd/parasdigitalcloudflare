@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "export": "next export",
     "start": "next start",
     "lint": "next lint",
-    "deploy:cloudflare": "npm run build && echo 'Build complete! Ready for Cloudflare Pages deployment.'"
+    "deploy:cloudflare": "npm run build && npx wrangler deploy"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -76,6 +77,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@cloudflare/kv-asset-handler": "^0.4.0",
     "@types/node": "24.1.0",
     "typescript": "5.9.2"
   }

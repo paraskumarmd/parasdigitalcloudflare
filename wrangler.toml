@@ -1,48 +1,32 @@
-# Cloudflare Pages configuration for Paras Digital Portfolio
+# Cloudflare Worker configuration for Paras Digital Portfolio
 name = "paras-digital-portfolio"
 compatibility_date = "2024-01-15"
+main = "out/server.js"
 
+# Build configuration for Next.js static export
 [build]
-command = "npm run build"
+command = "npm run build && npm run export"
 cwd = "."
 
-[build.environment_variables]
-NODE_VERSION = "18"
+# Environment variables for the worker
+[vars]
+NEXT_PUBLIC_SUPABASE_URL = "https://qkokgwunjnlhssuntiob.supabase.co"
+NEXT_PUBLIC_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrb2tnd3Vuam5saHNzdW50aW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUxOTY5NDYsImV4cCI6MjA3MDc3Mjk0Nn0.RDJzFkY7v_X9EEt2LsyH1dKz-UhSPp9-FuDUMk1xnuo"
+CONTACT_TABLE_NAME = "contact_submissions"
 
-# Pages configuration
-[pages]
-# Build output directory
-build_output_dir = ".next"
+# Secrets (these will be set via wrangler secret put)
+# SUPABASE_SERVICE_ROLE_KEY
+# NOTION_API_KEY  
+# NOTION_DATABASE_ID
+# EMAIL_HOST
+# EMAIL_PORT
+# EMAIL_USER
+# EMAIL_PASS
+# EMAIL_TO
 
-# Functions configuration for API routes
-[functions]
-# Enable functions for API routes
-enabled = true
+# Worker configuration
+[env.production]
+name = "paras-digital-portfolio"
 
-# Headers for security and performance
-[[headers]]
-for = "/*"
-[headers.values]
-X-Frame-Options = "DENY"
-X-Content-Type-Options = "nosniff"
-Referrer-Policy = "strict-origin-when-cross-origin"
-X-XSS-Protection = "1; mode=block"
-
-# Cache static assets
-[[headers]]
-for = "/static/*"
-[headers.values]
-Cache-Control = "public, max-age=31536000, immutable"
-
-# Cache images
-[[headers]]
-for = "/_next/image/*"
-[headers.values]
-Cache-Control = "public, max-age=31536000, immutable"
-
-# Security headers for API routes
-[[headers]]
-for = "/api/*"
-[headers.values]
-X-Frame-Options = "DENY"
-X-Content-Type-Options = "nosniff"
+[env.staging]
+name = "paras-digital-portfolio-staging"

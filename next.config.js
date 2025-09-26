@@ -3,8 +3,10 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Cloudflare Pages optimization
-  output: 'standalone',
+  // Cloudflare Workers optimization - static export
+  output: 'export',
+  trailingSlash: true,
+  distDir: 'out',
   images: { 
     domains: [
       'prod-files-secure.s3.us-west-2.amazonaws.com', 
