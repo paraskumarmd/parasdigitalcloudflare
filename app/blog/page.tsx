@@ -12,6 +12,7 @@ export default function BlogPage() {
   const [selectedTag, setSelectedTag] = useState<string>('all');
   const [allTags, setAllTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Set page title
   useEffect(() => {
@@ -19,13 +20,30 @@ export default function BlogPage() {
   }, []);
 
   useEffect(() => {
-    async function fetchPosts() {
+    async function fetchPosts(retryCount = 0) {
       try {
-        const response = await fetch('/api/blog-posts');
+        setError(null);
+        console.log(`Starting to fetch blog posts... (attempt ${retryCount + 1})`);
+        
+        const response = await fetch('/api/blog-posts', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          cache: 'no-cache'
+        });
+        
+        console.log('Response status:', response.status);
+        console.log('Response ok:', response.ok);
+        
         if (!response.ok) {
-          throw new Error('Failed to fetch blog posts');
+          const errorText = await response.text();
+          console.error('Response error:', errorText);
+          throw new Error(`Failed to fetch blog posts: ${response.status} ${response.statusText}`);
         }
+        
         const fetchedPosts = await response.json();
+        console.log('Successfully fetched posts:', fetchedPosts.length);
         
         // Debug: Log all posts and their status values
         console.log('=== BLOG PAGE DEBUG ===');
@@ -64,8 +82,28 @@ export default function BlogPage() {
         
       } catch (error) {
         console.error('Error fetching posts:', error);
+        console.error('Error details:', {
+          message: error instanceof Error ? error.message : 'Unknown error',
+          stack: error instanceof Error ? error.stack : undefined
+        });
+        
+        // Retry logic - retry up to 3 times with exponential backoff
+        if (retryCount < 3) {
+          console.log(`Retrying in ${Math.pow(2, retryCount) * 1000}ms...`);
+          setTimeout(() => {
+            fetchPosts(retryCount + 1);
+          }, Math.pow(2, retryCount) * 1000);
+          return;
+        }
+        
+        // Set error state after all retries failed
+        setError(error instanceof Error ? error.message : 'Failed to load blog posts');
+        setPosts([]);
+        setAllTags([]);
       } finally {
-        setLoading(false);
+        if (retryCount === 0 || error) {
+          setLoading(false);
+        }
       }
     }
 
@@ -92,6 +130,26 @@ export default function BlogPage() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading blog posts...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="max-w-4xl mx-auto py-20 px-4">
+        <div className="text-center">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+            <h2 className="text-xl font-semibold text-red-800 mb-2">Error Loading Blog Posts</h2>
+            <p className="text-red-600 mb-4">{error}</p>
+            <Button 
+              onClick={() => window.location.reload()} 
+              variant="outline"
+              className="border-red-300 text-red-700 hover:bg-red-50"
+            >
+              Retry
+            </Button>
+          </div>
         </div>
       </main>
     );
