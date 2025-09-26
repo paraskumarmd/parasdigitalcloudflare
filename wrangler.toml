@@ -5,11 +5,6 @@ compatibility_date = "2024-01-15"
 # Pages configuration
 pages_build_output_dir = ".next"
 
-# Build configuration for Pages
-[build]
-command = "npm run build"
-cwd = "."
-
 # Environment variables for Pages
 [vars]
 NEXT_PUBLIC_SUPABASE_URL = "https://qkokgwunjnlhssuntiob.supabase.co"
@@ -25,10 +20,3 @@ CONTACT_TABLE_NAME = "contact_submissions"
 # EMAIL_USER
 # EMAIL_PASS
 # EMAIL_TO
-
-# Pages configuration
-[env.production]
-name = "parasdigicloudflare"
-
-[env.staging]
-name = "parasdigicloudflare-staging"
