@@ -1,11 +1,11 @@
 # Cloudflare Worker configuration for Paras Digital Portfolio
 name = "paras-digital-portfolio"
 compatibility_date = "2024-01-15"
-main = "out/server.js"
+main = "worker.js"
 
-# Build configuration for Next.js static export
+# Build configuration
 [build]
-command = "npm run build && npm run export"
+command = "npm run build"
 cwd = "."
 
 # Environment variables for the worker
