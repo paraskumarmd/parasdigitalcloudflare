@@ -3,7 +3,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Cloudflare Pages with Functions - hybrid rendering
+  // Cloudflare Workers optimization - hybrid rendering
   output: 'standalone',
   images: { 
     domains: [
