@@ -9,6 +9,11 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = (page - 1) * limit;
 
+    // Check if Supabase is properly configured
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    }
+
     const supabase = createServerSupabaseClient();
 
     // Get comments for moderation
@@ -60,6 +65,11 @@ export async function POST(request: NextRequest) {
 
     if (!action || !['approve', 'reject', 'spam', 'delete'].includes(action)) {
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+    }
+
+    // Check if Supabase is properly configured
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
     }
 
     const supabase = createServerSupabaseClient();

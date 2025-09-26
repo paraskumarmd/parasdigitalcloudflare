@@ -13,6 +13,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Blog slug is required' }, { status: 400 });
     }
 
+    // Check if Supabase is properly configured
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    }
+
     const supabase = createServerSupabaseClient();
     
     // Get approved comments for the blog post
@@ -71,6 +76,11 @@ export async function POST(request: NextRequest) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(author_email)) {
       return NextResponse.json({ error: 'Invalid email address' }, { status: 400 });
+    }
+
+    // Check if Supabase is properly configured
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
     }
 
     // Get client IP and user agent

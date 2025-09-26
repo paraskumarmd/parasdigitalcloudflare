@@ -14,6 +14,11 @@ export async function PUT(
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
     }
 
+    // Check if Supabase is properly configured
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    }
+
     const supabase = createServerSupabaseClient();
 
     // Update comment status
@@ -48,6 +53,11 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
+
+    // Check if Supabase is properly configured
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    }
 
     const supabase = createServerSupabaseClient();
 
