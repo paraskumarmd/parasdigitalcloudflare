@@ -1,16 +1,32 @@
-// Cloudflare Worker for Paras Digital Portfolio
-// This worker serves the static Next.js export and handles API routes
+// Main Cloudflare Worker for Paras Digital Portfolio
+import { handleBlogPosts } from './workers/api/blog-posts.js';
+import { handleComments } from './workers/api/comments.js';
+import { handleContact } from './workers/api/contact.js';
+import { handleCommentsModerate } from './workers/api/comments-moderate.js';
+import { handleCommentsById } from './workers/api/comments-by-id.js';
 
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    
+    // Handle CORS preflight requests
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Access-Control-Max-Age': '86400',
+        },
+      });
+    }
     
     // Handle API routes
     if (url.pathname.startsWith('/api/')) {
       return handleApiRequest(request, env);
     }
     
-    // Serve static files
+    // Handle static files (for Next.js export)
     return handleStaticRequest(request, env);
   },
 };
@@ -18,60 +34,87 @@ export default {
 async function handleApiRequest(request, env) {
   const url = new URL(request.url);
   
-  // Set environment variables for API routes
-  process.env.NEXT_PUBLIC_SUPABASE_URL = env.NEXT_PUBLIC_SUPABASE_URL;
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  process.env.SUPABASE_SERVICE_ROLE_KEY = env.SUPABASE_SERVICE_ROLE_KEY;
-  process.env.NOTION_API_KEY = env.NOTION_API_KEY;
-  process.env.NOTION_DATABASE_ID = env.NOTION_DATABASE_ID;
-  process.env.EMAIL_HOST = env.EMAIL_HOST;
-  process.env.EMAIL_PORT = env.EMAIL_PORT;
-  process.env.EMAIL_USER = env.EMAIL_USER;
-  process.env.EMAIL_PASS = env.EMAIL_PASS;
-  process.env.EMAIL_TO = env.EMAIL_TO;
-  process.env.CONTACT_TABLE_NAME = env.CONTACT_TABLE_NAME;
-  
-  // Import and handle the specific API route
   try {
+    // Blog posts API
     if (url.pathname === '/api/blog-posts') {
-      const { GET } = await import('./api/blog-posts/route.js');
-      return GET(request);
+      return await handleBlogPosts(request, env);
     }
     
-    if (url.pathname.startsWith('/api/comments')) {
-      if (url.pathname === '/api/comments') {
-        const { GET, POST } = await import('./api/comments/route.js');
-        if (request.method === 'GET') return GET(request);
-        if (request.method === 'POST') return POST(request);
-      }
-      
-      if (url.pathname.startsWith('/api/comments/moderate')) {
-        const { GET, POST } = await import('./api/comments/moderate/route.js');
-        if (request.method === 'GET') return GET(request);
-        if (request.method === 'POST') return POST(request);
-      }
-      
-      if (url.pathname.match(/^\/api\/comments\/[^\/]+$/)) {
-        const { PUT, DELETE } = await import('./api/comments/[id]/route.js');
-        if (request.method === 'PUT') return PUT(request, { params: Promise.resolve({ id: url.pathname.split('/')[3] }) });
-        if (request.method === 'DELETE') return DELETE(request, { params: Promise.resolve({ id: url.pathname.split('/')[3] }) });
-      }
+    // Comments API
+    if (url.pathname === '/api/comments') {
+      return await handleComments(request, env);
     }
     
+    // Comments moderation API
+    if (url.pathname === '/api/comments/moderate') {
+      return await handleCommentsModerate(request, env);
+    }
+    
+    // Comments by ID API (PUT/DELETE)
+    const commentsByIdMatch = url.pathname.match(/^\/api\/comments\/([^\/]+)$/);
+    if (commentsByIdMatch) {
+      const commentId = commentsByIdMatch[1];
+      return await handleCommentsById(request, env, commentId);
+    }
+    
+    // Contact API
     if (url.pathname === '/api/contact') {
-      const { POST } = await import('./api/contact/route.js');
-      return POST(request);
+      return await handleContact(request, env);
     }
     
-    return new Response('API route not found', { status: 404 });
+    // API route not found
+    return new Response(JSON.stringify({ error: 'API route not found' }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json' }
+    });
+    
   } catch (error) {
     console.error('API Error:', error);
-    return new Response('Internal Server Error', { status: 500 });
+    return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 }
 
 async function handleStaticRequest(request, env) {
-  // This would typically serve static files from KV storage
-  // For now, return a simple response
-  return new Response('Static file serving not implemented yet', { status: 501 });
+  const url = new URL(request.url);
+  
+  try {
+    // For static files, we'll serve them from the out directory
+    // This is a simplified implementation - in production you'd use KV storage
+    
+    // Default to index.html for SPA routing
+    let filePath = url.pathname;
+    if (filePath === '/' || !filePath.includes('.')) {
+      filePath = '/index.html';
+    }
+    
+    // Try to get the file from KV storage (if configured)
+    // For now, return a simple response
+    return new Response(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Paras Digital Portfolio</title>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+        </head>
+        <body>
+          <h1>Paras Digital Portfolio</h1>
+          <p>Static file serving not fully implemented yet.</p>
+          <p>API routes are working: <a href="/api/blog-posts">/api/blog-posts</a></p>
+        </body>
+      </html>
+    `, {
+      headers: {
+        'Content-Type': 'text/html',
+        'Cache-Control': 'public, max-age=3600',
+      },
+    });
+    
+  } catch (error) {
+    console.error('Static file error:', error);
+    return new Response('File not found', { status: 404 });
+  }
 }
